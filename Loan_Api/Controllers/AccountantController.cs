@@ -95,6 +95,24 @@ namespace Loan_Api.Controllers
             }
         }
 
+
+        [Authorize(Roles = Roles.Accountant)]
+        [HttpPut("{userId}/status")]
+        public async Task<IActionResult> ChangeUserStatus(Guid userId, AccountantChangeUserStatusDto userDto)
+        {
+            var result = await _accountService.ChangeUserStatus(userId, userDto);
+
+            if (result.IsSuccess)
+            {
+                return Ok(result.ErrorMessage);
+            }
+            else
+            {
+                return BadRequest(result.ErrorMessage);
+            }
+        }
+
+
         [Authorize(Roles = Roles.Accountant)]
         [HttpDelete("DeleteUserLoan/{loanId}")]
         public async Task<IActionResult> DeleteUserLoan(int loanId, Guid userId)

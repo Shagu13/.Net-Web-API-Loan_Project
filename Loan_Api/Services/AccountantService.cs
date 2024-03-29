@@ -19,6 +19,8 @@ namespace Loan_Api.Services
         Task<IRequestErrorMsg> GetUserDetails(Guid userId);
         Task<IRequestErrorMsg> ChangeLoanStatus(int loanId, Guid userId, AccountantLoanStatusDto userDto);
         Task<IRequestErrorMsg> DeleteUserLoan(int loanId, Guid userId);
+        Task<IRequestErrorMsg> ChangeUserStatus(Guid userId, AccountantChangeUserStatusDto userDto);
+
     }
     public class AccountService : IAccountService
     {
@@ -215,6 +217,35 @@ namespace Loan_Api.Services
             catch (Exception ex)
             {
                 return RequestErrorMsg.Failure($"An error occurred while deleting user loan: {ex.Message}");
+            }
+        }
+        public async Task<IRequestErrorMsg> ChangeUserStatus(Guid userId, AccountantChangeUserStatusDto userDto)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return RequestErrorMsg.Failure("Invalid user ID.");
+                }
+
+                var user = await _dbContext.Users
+                    .Include(u => u.Loans)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    return RequestErrorMsg.Failure("User not found.");
+                }
+                user.IsBlocked = userDto.IsBlocked;
+
+                await _dbContext.SaveChangesAsync();
+
+                return RequestErrorMsg.Success("User status changed successfully.");
+            }
+            catch (Exception ex)
+            {
+
+                return RequestErrorMsg.Failure("An error occurred while changing user status.");
             }
         }
 
